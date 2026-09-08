@@ -1,0 +1,22 @@
+[
+  {
+    "productId": 1,
+    "name": "Laptop",
+    "description": "Gaming laptop",
+    "price": 55000.00,
+    "stockQuantity": 10,
+    "category": "Electronics",
+    "imageURL": "laptop.jpg",
+    "active": true
+  },
+  {
+    "productId": 2,
+    "name": "Mouse",
+    "description": "Wireless mouse",
+    "price": 500.00,
+    "stockQuantity": 50,
+    "category": "Electronics",
+    "imageURL": "mouse.jpg",
+    "active": true
+  }
+]
