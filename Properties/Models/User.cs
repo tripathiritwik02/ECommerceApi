@@ -7,6 +7,8 @@ public class User
     public string Email {get; set;} = string.Empty;
     public string Password {get; set;} = string.Empty;
     public UserRole Role{get; set;} = UserRole.CUSTOMER;
+
+     public int? AddressId { get; set; } 
     public Address? Address{get; set;}
     public DateTime Createdat {get; set;}= DateTime.Now;
     public DateTime Updatedat {get; set;}= DateTime.Now; 

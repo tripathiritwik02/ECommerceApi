@@ -6,19 +6,11 @@ namespace ECommerceApi.Services;
 
 public class ProductService
 {
-    private readonly List<Product> _products;
+    private readonly AppDbContext _contexts;
 
-    public ProductService()
+    public ProductService(AppDbContext context)
     {
-          var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Properties", "Models", "Data", "products.json");
-        var jsonData = File.ReadAllText(filePath);
-
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        _products = JsonSerializer.Deserialize<List<Product>>(jsonData, options) ?? new List<Product>();
+        _contexts = context;
     }
 
     private ProductResponse MaptoProductResponse(Product product)
@@ -46,11 +38,12 @@ public class ProductService
     }
     public List<ProductResponse> getAllProduct()
     {
-        return _products.Select(MaptoProductResponse).ToList();
+         var products =_contexts.Products.ToList();
+        return products.Select(MaptoProductResponse).ToList();
     }
     public ProductResponse? getProductById(int Id)
     {
-       var product = _products.FirstOrDefault(p=> p.ProductId == Id);
+       var product = _contexts.Products.FirstOrDefault(p=> p.ProductId == Id);
        if(product== null)
        return null;
 
@@ -61,24 +54,25 @@ public class ProductService
     {
         var newProdut =new Product();
         MaptoProduct(newProdut,request);
-        newProdut.ProductId = _products.Count > 0 ? _products.Max(u => u.ProductId) + 1 : 1;
-        _products.Add(newProdut);
+
+        _contexts.Products.Add(newProdut);
+        _contexts.SaveChanges();
     }
 
-    public Boolean UpdateProduct(int id, ProductRequest request)
+    public bool UpdateProduct(int id, ProductRequest request)
     {
-        var existingProduct =_products.FirstOrDefault(u=> u.ProductId == id);
+        var existingProduct =_contexts.Products.FirstOrDefault(u=> u.ProductId == id);
         if (existingProduct== null)
         return false;
 
         MaptoProduct(existingProduct,request);
         existingProduct.Updatedat = DateTime.Now;
-
+        _contexts.SaveChanges();
         return true;
     }
 
     public Product? GetProductById(int id)
 {
-    return _products.FirstOrDefault(p => p.ProductId == id);
+    return _contexts.Products.FirstOrDefault(p => p.ProductId == id);
 }
 }

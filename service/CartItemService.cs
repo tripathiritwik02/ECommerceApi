@@ -6,22 +6,15 @@ namespace ECommerceApi.Services;
 
 public class CartItemService
 {
-    private readonly List<CartItem> _cartItems;
+    private readonly AppDbContext _context;
     private readonly UserService _userService;
     private readonly ProductService _productService;
 
-    public CartItemService(ProductService productService , UserService userService)
+    public CartItemService(AppDbContext context, UserService user, ProductService service)
     {
-        _productService = productService;
-        _userService = userService;
-       var filePath= Path.Combine(Directory.GetCurrentDirectory(), "Properties", "Models", "Data", "cartItem.json");
-       var jsonData = File.ReadAllText(filePath);
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        _cartItems = JsonSerializer.Deserialize<List<CartItem>>(jsonData, options) ?? new List<CartItem>();
+        _context = context;
+        _userService = user;
+        _productService  = service;
     }
 
     public bool AddToCart(int UserId, CartItemRequest request)
@@ -33,11 +26,11 @@ public class CartItemService
         if(product.StockQuantity < request.Quantity)
         return false;
 
-        var existinguser = _userService.GetUserById(UserId);
-        if(existinguser == null)
+        var existinguser = _userService.UserExist(UserId);
+        if(existinguser == false)
         return false;
 
-        var existingCartItem = _cartItems.FirstOrDefault(c => c.UserId == UserId && c.ProductId == request.ProductId);
+        var existingCartItem = _context.CartItems.FirstOrDefault(c => c.UserId == UserId && c.ProductId == request.ProductId);
         if (existingCartItem != null)
         {
         existingCartItem.Quantity += request.Quantity;
@@ -47,30 +40,32 @@ public class CartItemService
         {
             var newcartitem =new CartItem
                {
-                Id = _cartItems.Count > 0 ? _cartItems.Max(c => c.Id) + 1 : 1,
                 UserId = UserId,
                 ProductId = request.ProductId,
                 Quantity = request.Quantity,
                 Price = product.Price * request.Quantity
             };
-            _cartItems.Add(newcartitem);
+            _context.CartItems.Add(newcartitem);
         }
+        _context.SaveChanges();
         return true;
     }
 
       public bool RemoveItemFromCart(int userId, int productId)
     {
-        var cartItem = _cartItems.FirstOrDefault(c => c.UserId == userId && c.ProductId == productId);
+        var cartItem = _context.CartItems
+                                     .FirstOrDefault(c => c.UserId == userId && c.ProductId == productId);
         if (cartItem == null)
             return false;
 
-        _cartItems.Remove(cartItem);
+        _context.CartItems.Remove(cartItem);
+        _context.SaveChanges();
         return true;
     }
 
     public List<CartItem> GetCartItems(int userId)
     {
-        return _cartItems.Where(c => c.UserId == userId).ToList();
+        return _context.CartItems.Where(c => c.UserId == userId).ToList();
     }
     
 }

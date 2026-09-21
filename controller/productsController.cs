@@ -32,7 +32,7 @@ public class ProductsController : ControllerBase
     public IActionResult AddProduct([FromBody] ProductRequest request)
     {
         _productService.AddProduct(request);
-        return Ok("user added");
+        return Ok("products added");
     }
     [HttpPut("{id}")]
     public IActionResult UpdateProduct(int id,[FromBody] ProductRequest request)

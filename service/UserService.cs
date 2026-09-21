@@ -2,27 +2,15 @@ namespace ECommerceApi.Services;
 
 using ECommerceApi.Dtos;
 using ECommerceApi.Models;
-using System.Text.Json;
-
+using Microsoft.EntityFrameworkCore;
 public class UserService
 {
-    private readonly List<User> _users;
+    private readonly AppDbContext _context;
 
-    public UserService()
+    public UserService(AppDbContext context)
     {
-        var filePath = Path.Combine(Directory.GetCurrentDirectory(), "Properties", "Models", "Data", "users.json");
-        var jsonData = File.ReadAllText(filePath);
-
-        var options = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true,
-            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
-        };
-
-        _users = JsonSerializer.Deserialize<List<User>>(jsonData, options) ?? new List<User>();
-    }
-
-    private UserResponse MaptoUserResponse(User user)
+        _context = context;
+    }    private UserResponse MaptoUserResponse(User user)
     {
         var response = new UserResponse
         {
@@ -64,12 +52,13 @@ public class UserService
 
     public List<UserResponse> GetAllUsers()
     {
-        return _users.Select(MaptoUserResponse).ToList();
+        var users = _context.Users.Include(u => u.Address).ToList();
+        return users.Select(MaptoUserResponse).ToList();
     }
 
     public UserResponse? GetUserById(int id)
     {
-        var user = _users.FirstOrDefault(u => u.Id == id);
+        var user = _context.Users.Include(u => u.Address).FirstOrDefault(u => u.Id == id);
         if (user == null)
             return null;
 
@@ -80,19 +69,23 @@ public class UserService
     {
         var newUser = new User();
         UpdateUserFromRequest(newUser, request);
-        newUser.Id = _users.Count > 0 ? _users.Max(u => u.Id) + 1 : 1;
-        _users.Add(newUser);
+        _context.Users.Add(newUser);
+        _context.SaveChanges();
     }
 
     public bool UpdateUser(int id, UserRequest request)
     {
-        var existingUser = _users.FirstOrDefault(u => u.Id == id);
+        var existingUser = _context.Users.Include(u => u.Address ).FirstOrDefault(u => u.Id == id);
         if (existingUser == null)
             return false;
 
         UpdateUserFromRequest(existingUser, request);
         existingUser.Updatedat = DateTime.Now;
-
+        _context.SaveChanges();
         return true;
+    }
+    public bool UserExist(int id)
+    {
+        return _context.Users.Any(u => u.Id == id);
     }
 }

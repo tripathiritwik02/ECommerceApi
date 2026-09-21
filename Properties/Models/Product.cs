@@ -1,6 +1,4 @@
 namespace ECommerceApi.Models;
-using System.Numerics;
-
 public class Product
 {
     public int ProductId {get; set;}
