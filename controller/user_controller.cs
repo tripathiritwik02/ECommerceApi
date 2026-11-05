@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using ECommerceApi.Services;
 using ECommerceApi.Models;
 using ECommerceApi.Dtos;
+using System.Runtime.CompilerServices;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -35,7 +36,9 @@ public class UsersController : ControllerBase
     [HttpPost]
     public IActionResult CreateUser([FromBody] UserRequest request)
     {
-        _userService.AddUser(request);
+        bool created = _userService.AddUser(request);
+        if(!created)
+        return Conflict($"user '{request.Name}' already exist");
         return Ok("user added");
     }
 
